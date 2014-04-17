@@ -25,8 +25,6 @@ int password_get(char *pass, size_t size)
         return -1;
     }
 
-    pass[size - 1] = 0;
-
     for (size_t at = strlen(pass); at > 0; at--) {
         if (pass[at - 1] != '\n')
             break;
