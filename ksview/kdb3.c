@@ -24,20 +24,19 @@ static void _dump_text(uint8_t *buf, size_t sz)
 
 // -- Crypto ------------------------------------------------------------------
 
-
-/* Applies multiple rounds of ECB AES-256 on a 32 byte key (split in two
- * parts), followed by a single SHA-256 digest to produce the-almost-bu
+/* Applies the KDB3 key transformation on the SHA-256 digest of the master key.
  */
 static
-void _kdb3_key_transform(const uint8_t src[SHA256_DIGEST_LEN],
+void _kdb3_key_transform(const uint8_t master_key[SHA256_DIGEST_LEN],
                          uint8_t dst[SHA256_DIGEST_LEN],
-                         const uint8_t key[32],
+                         const uint8_t rounds_key[32],
                          uint32_t rounds,
-                         const uint8_t seed[16])
+                         const uint8_t final_seed[16])
 {
-    aes256_init(x, key);
-    memcpy(dst,      src,      16);
-    memcpy(dst + 16, src + 16, 16);
+    // Multiple ECB rounds on both halves of the master key
+    aes256_init(x, rounds_key);
+    memcpy(dst,      master_key,      16);
+    memcpy(dst + 16, master_key + 16, 16);
 
     for (uint32_t i = 0; i < rounds; i++) {
         aes_ecb_encrypt(x, dst,      dst);
@@ -48,14 +47,13 @@ void _kdb3_key_transform(const uint8_t src[SHA256_DIGEST_LEN],
 
     // Once more, for good luck
     sha256_init(s);
-    sha256_update(s, seed, 16);
+    sha256_update(s, final_seed, 16);
     sha256_update(s, dst, SHA256_DIGEST_LEN);
     sha256_final(s, dst);
 }
 
 
 // -- Parsing -----------------------------------------------------------------
-
 
 /* Compute the base master key from a passphrase.
  *
@@ -172,6 +170,8 @@ failed:
     return ret;
 }
 
+
+// ----------------------------------------------------------------------------
 
 /*
  */
