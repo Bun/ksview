@@ -1,0 +1,18 @@
+[package]
+name = "ksview"
+version = "0.1.0"
+authors = ["Ben de Graaff <ben@nx3d.org>"]
+
+[dependencies]
+libc = "*"
+byteorder = "*"
+rpassword = "*"
+
+
+[lib]
+name = "keepass"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ksview"
+path = "src/ksview/ksview.rs"
